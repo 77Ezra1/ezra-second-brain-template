@@ -67,6 +67,36 @@ python scripts/work_report.py --review-day today --plan-day tomorrow
 python scripts/work_report.py --review-day 2026-01-01 --plan-day 2026-01-02
 ```
 
+## 飞书 / Lark CLI 增强命令
+
+如果想连接飞书云文档、多维表格和可视化看板，可以安装 `lark-cli`：
+
+```bash
+npm install -g @larksuite/cli
+npx -y skills add https://open.feishu.cn --skill -y
+lark-cli --version
+```
+
+绑定和授权：
+
+```bash
+lark-cli config bind --source hermes --identity user-default
+LARK_CLI_SUPPRESS_NOTICE=1 lark-cli auth login --recommend --no-wait --json
+LARK_CLI_SUPPRESS_NOTICE=1 lark-cli auth status --json --verify
+```
+
+多维表格同步配置写在本地 `config/brain.yaml`，不要提交到公开仓库：
+
+```yaml
+lark_expense_sync:
+  enabled: true
+  base_token: "你的多维表格 base token"
+  table_id: "你的 table id"
+  identity: user
+```
+
+完整说明见：[`docs/feishu-lark-cli.zh-CN.md`](feishu-lark-cli.zh-CN.md)
+
 ## 安装命令
 
 ```bash

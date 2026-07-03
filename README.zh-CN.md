@@ -49,6 +49,24 @@
 
 完整命令清单见：[`docs/commands.zh-CN.md`](docs/commands.zh-CN.md)
 
+## 可选增强：连接飞书云文档 / 多维表格
+
+本模板默认是本地 Markdown 外脑；如果安装 `lark-cli`，就可以进一步连接飞书云文档和飞书多维表格：
+
+- 把消费、日报、项目数据同步到飞书 Base；
+- 在多维表格里做分类统计、趋势图、消费看板；
+- 让 Agent 读取/创建飞书文档，做协作沉淀。
+
+推荐命令：
+
+```bash
+npm install -g @larksuite/cli
+npx -y skills add https://open.feishu.cn --skill -y
+lark-cli --version
+```
+
+完整配置见：[`docs/feishu-lark-cli.zh-CN.md`](docs/feishu-lark-cli.zh-CN.md)
+
 ## 一键安装
 
 ### 方式 A：复制给任意 Agent

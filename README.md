@@ -115,6 +115,22 @@ Output:
 
 See the full list: [`docs/commands.zh-CN.md`](docs/commands.zh-CN.md)
 
+## Optional: Feishu / Lark cloud docs and Base dashboards
+
+The core template is local-first. If you also install `lark-cli`, agents can connect this workflow to Feishu/Lark Docs and Base tables:
+
+- sync expenses, reports, or project metrics into Base;
+- build category dashboards and trend charts;
+- read or create cloud documents for collaboration.
+
+```bash
+npm install -g @larksuite/cli
+npx -y skills add https://open.feishu.cn --skill -y
+lark-cli --version
+```
+
+Chinese setup guide: [`docs/feishu-lark-cli.zh-CN.md`](docs/feishu-lark-cli.zh-CN.md)
+
 ## Repository layout
 
 ```text
