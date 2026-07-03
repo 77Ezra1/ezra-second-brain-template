@@ -1,19 +1,29 @@
 #!/usr/bin/env node
 const { spawnSync } = require('child_process');
+const path = require('path');
+const fs = require('fs');
 
 const args = process.argv.slice(2);
-const code = `import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())`;
-const result = spawnSync('python', ['-c', code, '--', ...args], { stdio: 'inherit' });
-if (result.error && result.error.code === 'ENOENT') {
-  const fallback = spawnSync('python3', ['-c', code, '--', ...args], { stdio: 'inherit' });
-  if (fallback.error) {
+const localInstaller = path.join(__dirname, 'install.py');
+
+function runPython(commandArgs) {
+  let result = spawnSync('python', commandArgs, { stdio: 'inherit' });
+  if (result.error && result.error.code === 'ENOENT') {
+    result = spawnSync('python3', commandArgs, { stdio: 'inherit' });
+  }
+  if (result.error) {
     console.error('Python is required. Please install Python 3.11+ and retry.');
     process.exit(1);
   }
-  process.exit(fallback.status || 0);
+  process.exit(result.status || 0);
 }
-if (result.error) {
-  console.error(result.error.message);
-  process.exit(1);
+
+// When this package is installed by npx from GitHub, install.py is available next to this file.
+// Running the local file also makes --skip-download work for smoke tests and offline agents.
+if (fs.existsSync(localInstaller)) {
+  runPython([localInstaller, ...args]);
 }
-process.exit(result.status || 0);
+
+// Fallback for unusual packaging environments where only this wrapper exists.
+const code = `import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())`;
+runPython(['-c', code, '--', ...args]);

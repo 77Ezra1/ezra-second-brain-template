@@ -1,85 +1,119 @@
 # ezra-second-brain-template
 
-A filesystem-first personal second brain template for Telegram/Hermes-style workflows.
+> A filesystem-first second brain for Telegram / Hermes / any agent that can run a shell.
 
-It captures raw messages, turns them into structured Markdown knowledge, supports daily reports, lightweight actions, article/document ingestion, expense records, and deterministic local queries — while keeping your data in ordinary files.
+`ezra-second-brain-template` turns chat-style notes into a local, inspectable Markdown knowledge base. It captures raw messages, structures them into notes, actions, expenses, articles, topics, and daily reports — while keeping your private data in ordinary files that you own.
 
-> 中文：一个文件系统优先的个人外脑模板。通过 Telegram / CLI 捕获信息，用 Markdown 管理长期知识，支持日报、待办、文章归档、消费记录和本地查询。
+[中文说明](README.zh-CN.md) · [Command list / 命令清单](docs/commands.zh-CN.md)
 
-## 中文说明
+## The vibe
 
-- [中文 README](README.zh-CN.md)
+Most note systems ask you to open an app, pick a database, choose tags, and maintain a workflow.
 
-## Agent-friendly installation
+This one starts with a sentence:
 
-Give this instruction block to any coding agent (Hermes, Claude Code, Codex, Cursor Agent, etc.):
+```text
+外脑：今天开项目会，确认内容框架和下周安排
+```
+
+Then it turns that sentence into a local trail:
+
+```text
+raw input -> inbox -> structured Markdown / JSONL -> query / review / daily report
+```
+
+The goal is not to replace Notion or a project-management system. The goal is to give your agent a durable local memory layer that is:
+
+- boring enough to last;
+- transparent enough to debug;
+- private enough to trust;
+- flexible enough to remix.
+
+## What it can do
+
+| Capability | What it means | Example |
+|---|---|---|
+| Quick capture | Preserve raw input and write readable notes | `外脑：今天开项目会` |
+| Deterministic query | Answer from local files before vague search | `外脑？今天记录了什么` |
+| Daily work report | Generate `今日复盘 / 明日安排` | `python scripts/work_report.py --review-day today` |
+| Lightweight actions | Open / complete / cancel Markdown tasks | `外脑待办：统一素材命名规则` |
+| Article ingestion | Save URLs, pasted articles, local docs | `外脑存文章：https://example.com/article` |
+| Topic sedimentation | Build durable topic pages over time | `外脑？人设IP 方法论` |
+| Expense capture | Lightweight bookkeeping in Markdown | `外脑：今天午饭花了28元` |
+| Agent install | Let any shell-capable agent bootstrap it | Python one-liner / `npx` |
+
+## Install it like an agent would
+
+Give this block to any coding agent — Hermes, Claude Code, Codex, Cursor Agent, etc.:
 
 ```text
 Install ezra-second-brain-template for me. Create a local second-brain workspace, do not overwrite existing private data, fetch the template from https://github.com/77Ezra1/ezra-second-brain-template, copy config/brain.example.yaml to config/brain.yaml, create local data directories, run tests/validation, and tell me the install path and commands. If you can run shell commands, prefer:
 python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())"
 ```
 
-Direct install options:
+Or run it yourself:
 
 ```bash
 # Universal Python one-liner
 python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())"
 
-# With a custom target
+# Custom target
 python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())" -- --target ~/second-brain
 
 # Node/npm style
 npx github:77Ezra1/ezra-second-brain-template --target ~/second-brain
 ```
 
-## Features
+> The `npx` path calls the Python installer internally, so Python 3.11+ is still recommended.
 
-- **Filesystem-first**: Markdown / JSONL files are the source of truth.
-- **Low-friction capture**: `外脑：...`, `外脑？...`, `外脑待办：...` style commands.
-- **Daily work report**: `今日复盘 / 明日安排` generator.
-- **Article ingestion**: URL, pasted text, local documents, WeChat article extraction helpers.
-- **Topic pages**: structured knowledge sedimentation under `wiki/topics/`.
-- **Lightweight actions**: open / complete / cancel tasks in Markdown.
-- **Privacy-first template**: no real user data, no tokens, no external sync enabled by default.
-
-## Quick start
+## 10-second demo
 
 ```bash
-git clone https://github.com/<your-user>/ezra-second-brain-template.git
-cd ezra-second-brain-template
-python -m pytest tests -q
-python scripts/brain_cli.py validate
+cd ~/second-brain
+
+python scripts/telegram_brain_router.py \
+  --text "外脑：今天开项目会，确认内容框架" \
+  --source telegram \
+  --data-dir ./data
+
+python scripts/telegram_brain_router.py \
+  --text "外脑？今天记录了什么" \
+  --source telegram \
+  --data-dir ./data
 ```
 
-Create your private data root from the examples:
+Generate a demo daily report:
 
 ```bash
-cp config/brain.example.yaml config/brain.yaml
-mkdir -p data
+HERMES_SECOND_BRAIN_ROOT=./examples/data \
+python scripts/work_report.py --review-day 2026-01-01 --plan-day 2026-01-02 --no-save
 ```
 
-Use an isolated data directory while testing:
+Output:
 
-```bash
-python scripts/telegram_brain_router.py --text "外脑：今天开项目会，确认内容框架" --source telegram --data-dir ./data
-python scripts/telegram_brain_router.py --text "外脑？今天记录了什么" --source telegram --data-dir ./data
-```
+```text
+1/1 今日复盘
+1. 开项目会确认内容框架
 
-Generate a demo work report:
-
-```bash
-HERMES_SECOND_BRAIN_ROOT=./examples/data python scripts/work_report.py --review-day 2026-01-01 --plan-day 2026-01-02 --no-save
+1/2 明日安排
+1. 暂无记录
 ```
 
 ## Command examples
 
-```bash
-python scripts/telegram_brain_router.py --text "外脑：今天午饭花了28元" --source telegram --data-dir ./data
-python scripts/telegram_brain_router.py --text "外脑？这个月主要开销是什么" --source telegram --data-dir ./data
-python scripts/telegram_brain_router.py --text "外脑待办：明天整理素材命名规则" --source telegram --data-dir ./data
-python scripts/telegram_brain_router.py --text "外脑完成：整理素材命名规则" --source telegram --data-dir ./data
-python scripts/telegram_brain_router.py --text "外脑存文章：https://example.com/article" --source telegram --data-dir ./data
-```
+| You want to... | Say / run |
+|---|---|
+| Capture a note | `外脑：今天完成了素材复盘` |
+| Ask about today | `外脑？今天记录了什么` |
+| Ask about expenses | `外脑？这个月主要开销是什么` |
+| Save an article | `外脑存文章：https://example.com/article` |
+| Add an action | `外脑待办：统一素材命名规则` |
+| Complete an action | `外脑完成：统一素材命名规则` |
+| Summarize | `外脑总结：今天` |
+| Generate questions | `外脑提问：最近一周` |
+| Correct a record | `外脑修正：把午饭28改成32` |
+
+See the full list: [`docs/commands.zh-CN.md`](docs/commands.zh-CN.md)
 
 ## Repository layout
 
@@ -89,18 +123,30 @@ scripts/     Deterministic CLI/router/ingestion/validation scripts.
 templates/   Markdown templates for notes.
 tests/       Pytest suite.
 examples/    Fictional sample data only.
-docs/        Architecture and privacy notes.
+docs/        Architecture, privacy, command list.
 ```
 
 Private user data should live in `data/` or another path configured by `HERMES_SECOND_BRAIN_ROOT`; do not commit it.
 
-## Privacy and publishing rules
+## Privacy rules
 
 This template excludes real records. For your own fork:
 
-- Never commit generated private content under `data/`, `raw/`, `inbox/`, `wiki/`, `daily/`, `reviews/`, `.env`, cookies, or tokens. The repository only keeps empty/skeleton index files.
-- Keep external sync identifiers in `config/brain.yaml`, which is gitignored.
-- Run a secret scan before pushing public changes.
+- never commit generated private content under `data/`, `raw/`, `inbox/`, `wiki/`, `daily/`, `reviews/`;
+- never commit `.env`, cookies, tokens, credentials, or external sync IDs;
+- keep real config in a local-only config file;
+- run a sensitive literal scan before pushing public changes.
+
+## Development
+
+```bash
+npm run test
+npm run validate
+
+# or directly
+python -m pytest tests -q
+python scripts/brain_cli.py validate
+```
 
 ## License
 

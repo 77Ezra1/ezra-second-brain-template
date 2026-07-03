@@ -1,33 +1,59 @@
 # ezra-second-brain-template 中文说明
 
-一个**文件系统优先**的个人外脑模板，适合接入 Telegram、Hermes 或其他 Agent 工具使用。
+> 把 Telegram / Agent 对话变成一个可追溯、可查询、可复盘的本地 Markdown 外脑。
 
-它把日常输入保存为本地 Markdown / JSONL 文件，再通过确定性脚本完成：记录、查询、日报、待办、文章归档、消费记录和知识主题沉淀。
+`ezra-second-brain-template` 是一套**文件系统优先**的个人外脑模板：你随口说一句“外脑，记一下……”，系统会把原始输入、结构化笔记、待办、日报、消费、文章和主题知识沉淀到本地文件里。
 
-> 核心理念：**原始输入不丢失，结构化知识可追溯，私人数据默认留在本地。**
+它不是一个笨重的 Notion/Jira 替代品，而是一套更适合 Agent 的本地知识底座：
+
+```text
+随手说一句 → raw 原文保留 → Markdown/JSONL 结构化 → 可查询/可复盘/可迁移
+```
+
+## 为什么做这个
+
+很多个人知识库的问题是：
+
+- 入口太重，记录成本高；
+- 数据在平台里，迁移困难；
+- 记录很多，但后续查不到、用不上；
+- Agent 能聊天，但没有一个稳定的长期本地记忆层。
+
+这套系统的目标是反过来：
+
+- **输入足够轻**：Telegram / CLI / 任意 Agent 都能写入；
+- **存储足够朴素**：Markdown + JSONL，没有数据库锁定；
+- **检索足够确定**：常见查询走规则路由，不全靠 LLM 猜；
+- **隐私足够清楚**：你的真实数据留在本地，不随模板开源。
 
 ## 适合谁
 
-- 想用 Telegram / 聊天入口随手记录信息的人；
-- 想搭一个本地 Markdown 外脑的人；
-- 想让 Agent 帮自己维护日报、待办、文章笔记、消费记录的人；
-- 想开源/二次开发一套轻量个人知识库系统的人。
+- 想用 Telegram 当随身记录入口的人；
+- 想给 Claude Code / Codex / Cursor / Hermes 配一个本地知识库的人；
+- 想自动生成工作日报、明日安排、待办的人；
+- 想把文章、文档、消费、想法沉淀成 Markdown 的人；
+- 想二次开发一套个人外脑系统的人。
 
-## 功能
+## 功能速览
 
-- **低摩擦记录**：支持 `外脑：...`、`外脑？...`、`外脑待办：...` 等自然命令。
-- **文件系统优先**：Markdown / JSONL 是主数据源，不依赖数据库。
-- **日报生成**：支持 `今日复盘 / 明日安排` 格式的工作日报。
-- **待办管理**：支持创建、完成、取消轻量行动项。
-- **文章归档**：支持 URL、粘贴全文、本地文档入库。
-- **主题沉淀**：文章和记录可以沉淀到 `wiki/topics/`。
-- **隐私优先**：模板仓库只包含虚构示例数据，不包含真实私人数据。
+| 能力 | 说明 | 示例 |
+|---|---|---|
+| 快速记录 | 保存 raw / inbox / daily note | `外脑：今天开项目会` |
+| 本地查询 | 从 Markdown / JSONL 查记录 | `外脑？今天记录了什么` |
+| 工作日报 | 生成 `今日复盘 / 明日安排` | `python scripts/work_report.py --review-day today` |
+| 待办管理 | 创建、完成、取消行动项 | `外脑待办：统一素材命名规则` |
+| 文章归档 | URL / 粘贴正文 / 文档入库 | `外脑存文章：https://example.com` |
+| 主题沉淀 | 文章和记录沉淀到 topic page | `外脑？人设IP 方法论` |
+| 消费记录 | 轻量记账与本地查询 | `外脑：今天午饭花了28元` |
+| Agent 安装 | 一段命令让任意 Agent 安装 | Python one-liner / npx |
 
-## 一键安装方式
+完整命令清单见：[`docs/commands.zh-CN.md`](docs/commands.zh-CN.md)
 
-### 方式 A：给任意 Agent 的安装指令
+## 一键安装
 
-把下面这段话复制给你的 Agent 工具，例如 Hermes、Claude Code、Codex、Cursor Agent 等：
+### 方式 A：复制给任意 Agent
+
+把下面这段话发给你的 Agent 工具：
 
 ```text
 请帮我安装 ezra-second-brain-template：
@@ -44,8 +70,6 @@ python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githu
 
 ### 方式 B：Python 一行安装
 
-适合绝大多数 Agent / 终端环境：
-
 ```bash
 python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())"
 ```
@@ -56,47 +80,62 @@ python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githu
 python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())" -- --target ~/second-brain
 ```
 
-### 方式 C：npx / npm 方式
-
-如果你的环境有 Node.js：
+### 方式 C：npx / npm 风格
 
 ```bash
 npx github:77Ezra1/ezra-second-brain-template --target ~/second-brain
 ```
 
-> 注意：这个方式依赖 npm 能从 GitHub 安装包；最通用的方式仍然是上面的 Python 一行安装。
+> npx 方式会调用 Python 安装脚本，因此目标环境仍需要 Python 3.11+。
 
-## 本地使用
-
-安装后进入目录：
+## 10 秒体验
 
 ```bash
 cd ~/second-brain
-```
 
-记录一条内容：
+python scripts/telegram_brain_router.py \
+  --text "外脑：今天开项目会，确认内容框架" \
+  --source telegram \
+  --data-dir ./data
 
-```bash
-python scripts/telegram_brain_router.py --text "外脑：今天开项目会，确认内容框架" --source telegram --data-dir ./data
-```
-
-查询今天记录：
-
-```bash
-python scripts/telegram_brain_router.py --text "外脑？今天记录了什么" --source telegram --data-dir ./data
-```
-
-添加待办：
-
-```bash
-python scripts/telegram_brain_router.py --text "外脑待办：整理素材命名规则" --source telegram --data-dir ./data
+python scripts/telegram_brain_router.py \
+  --text "外脑？今天记录了什么" \
+  --source telegram \
+  --data-dir ./data
 ```
 
 生成示例日报：
 
 ```bash
-HERMES_SECOND_BRAIN_ROOT=./examples/data python scripts/work_report.py --review-day 2026-01-01 --plan-day 2026-01-02 --no-save
+HERMES_SECOND_BRAIN_ROOT=./examples/data \
+python scripts/work_report.py --review-day 2026-01-01 --plan-day 2026-01-02 --no-save
 ```
+
+输出类似：
+
+```text
+1/1 今日复盘
+1. 开项目会确认内容框架
+
+1/2 明日安排
+1. 暂无记录
+```
+
+## 常用命令
+
+| 你想做什么 | 直接说 |
+|---|---|
+| 记录事情 | `外脑：今天完成了素材复盘` |
+| 查今天 | `外脑？今天记录了什么` |
+| 查消费 | `外脑？这个月主要开销是什么` |
+| 存文章 | `外脑存文章：https://example.com/article` |
+| 加待办 | `外脑待办：统一素材命名规则` |
+| 完成待办 | `外脑完成：统一素材命名规则` |
+| 生成总结 | `外脑总结：今天` |
+| 生成问题 | `外脑提问：最近一周` |
+| 修正记录 | `外脑修正：把午饭28改成32` |
+
+完整版本：[`docs/commands.zh-CN.md`](docs/commands.zh-CN.md)
 
 ## 目录结构
 
@@ -106,7 +145,7 @@ scripts/     核心 CLI、路由、文章入库、日报生成、验证脚本
 templates/   Markdown 模板
 tests/       测试用例
 examples/    虚构示例数据
-docs/        架构、隐私、安装说明
+docs/        架构、隐私、命令清单
 ```
 
 安装后的私人数据建议放在：
@@ -131,11 +170,15 @@ data/reviews/
 - 私人文章归档；
 - 飞书、GitHub、Telegram Token；
 - `.env`、cookie、API key；
-- 任何身份证、银行卡、手机号等敏感信息。
+- 身份证、银行卡、手机号等敏感信息。
 
 ## 开发验证
 
 ```bash
+npm run test
+npm run validate
+
+# 或者直接：
 python -m pytest tests -q
 python scripts/brain_cli.py validate
 ```
