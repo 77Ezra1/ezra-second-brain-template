@@ -1,0 +1,56 @@
+# Local secrets
+.env
+.env.*
+!.env.example
+*.secret
+*.pem
+*.key
+*.token
+*.cookie
+
+# Optional local override config
+config/brain.local.yaml
+
+# Generated/private personal knowledge content: keep skeleton indexes only
+/raw/**
+!/raw/
+!/raw/.gitkeep
+/inbox/**
+!/inbox/
+!/inbox/.gitkeep
+/reviews/**
+!/reviews/
+!/reviews/.gitkeep
+/wiki/**
+!/wiki/
+!/wiki/*/
+!/wiki/*/index.md
+!/wiki/**/.gitkeep
+/daily/**
+!/daily/
+!/daily/.gitkeep
+/log.md
+!/log.md
+/data/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Node / browsers
+node_modules/
+playwright-report/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Build/cache
+/dist/
+/build/
+*.tmp

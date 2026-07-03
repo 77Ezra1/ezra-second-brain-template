@@ -1,0 +1,3 @@
+# health
+
+Template category index.

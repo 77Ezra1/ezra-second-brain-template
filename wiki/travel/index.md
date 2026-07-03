@@ -1,0 +1,3 @@
+# travel
+
+Template category index.

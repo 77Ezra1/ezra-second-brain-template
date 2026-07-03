@@ -1,0 +1,3 @@
+# ideas
+
+Template category index.

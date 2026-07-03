@@ -1,0 +1,3 @@
+# life
+
+Template category index.

@@ -1,0 +1,28 @@
+categories:
+  life:
+    path: wiki/life
+    keywords: [生活, 日常, 家里, 钥匙, 习惯, 决策]
+  finance:
+    path: wiki/finance
+    keywords: [花了, 元, 钱, 消费, 账单, 打车, 早餐, 支出]
+  health:
+    path: wiki/health
+    keywords: [睡眠, 睡觉, 早起, 身体, 精神, 情绪, 运动, 健康]
+  ideas:
+    path: wiki/ideas
+    keywords: [想法, 灵感, 点子, 观点, 创意]
+  projects:
+    path: wiki/projects
+    keywords: [项目, 任务, 计划, 开发, 产品]
+  articles:
+    path: wiki/articles
+    keywords: [文章, 链接, URL, 资料, 网页]
+  people:
+    path: wiki/people
+    keywords: [朋友, 同事, 客户, 人]
+  business-intel:
+    path: wiki/business-intel
+    keywords: [商业, 竞品, 市场, 情报, 信号]
+  travel:
+    path: wiki/travel
+    keywords: [旅行, 酒店, 机票, 行程]

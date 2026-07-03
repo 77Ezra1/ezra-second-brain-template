@@ -1,0 +1,32 @@
+root: ./data
+timezone: Asia/Shanghai
+language: zh-CN
+telegram:
+  primary_capture: true
+  router_script: scripts/telegram_brain_router.py
+  command_prefixes:
+    capture: "外脑："
+    query: "外脑？"
+    article: "外脑存文章："
+    summary: "外脑总结："
+    questions: "外脑提问："
+    correction: "外脑修正："
+    action_open: "外脑待办："
+    action_done: "外脑完成："
+    action_cancel: "外脑取消："
+git:
+  auto_commit: false
+  auto_push: false
+  require_confirmation_for_remote: true
+privacy:
+  default: private
+  redact_secrets: true
+review:
+  daily_time: "23:30"
+  weekly_day: sunday
+  monthly_day: 1
+lark_expense_sync:
+  enabled: false
+  base_token: ""
+  table_id: ""
+  identity: user

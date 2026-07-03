@@ -1,0 +1,3 @@
+# projects
+
+Template category index.
