@@ -1,0 +1,25 @@
+{
+  "name": "ezra-second-brain-template",
+  "version": "0.1.0",
+  "description": "Filesystem-first personal second brain template for Telegram/Hermes workflows",
+  "license": "MIT",
+  "bin": {
+    "ezra-second-brain-template": "scripts/install-node.js",
+    "create-ezra-second-brain": "scripts/install-node.js"
+  },
+  "scripts": {
+    "test": "python -m pytest tests -q",
+    "validate": "python scripts/brain_cli.py validate"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/77Ezra1/ezra-second-brain-template.git"
+  },
+  "keywords": [
+    "second-brain",
+    "markdown",
+    "telegram",
+    "agent",
+    "personal-knowledge-management"
+  ]
+}

@@ -6,6 +6,32 @@ It captures raw messages, turns them into structured Markdown knowledge, support
 
 > 中文：一个文件系统优先的个人外脑模板。通过 Telegram / CLI 捕获信息，用 Markdown 管理长期知识，支持日报、待办、文章归档、消费记录和本地查询。
 
+## 中文说明
+
+- [中文 README](README.zh-CN.md)
+
+## Agent-friendly installation
+
+Give this instruction block to any coding agent (Hermes, Claude Code, Codex, Cursor Agent, etc.):
+
+```text
+Install ezra-second-brain-template for me. Create a local second-brain workspace, do not overwrite existing private data, fetch the template from https://github.com/77Ezra1/ezra-second-brain-template, copy config/brain.example.yaml to config/brain.yaml, create local data directories, run tests/validation, and tell me the install path and commands. If you can run shell commands, prefer:
+python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())"
+```
+
+Direct install options:
+
+```bash
+# Universal Python one-liner
+python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())"
+
+# With a custom target
+python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())" -- --target ~/second-brain
+
+# Node/npm style
+npx github:77Ezra1/ezra-second-brain-template --target ~/second-brain
+```
+
 ## Features
 
 - **Filesystem-first**: Markdown / JSONL files are the source of truth.
