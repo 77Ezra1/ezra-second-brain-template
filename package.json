@@ -1,7 +1,7 @@
 {
   "name": "ezra-second-brain-template",
   "version": "0.1.0",
-  "description": "Filesystem-first personal second brain template for Telegram/Hermes workflows",
+  "description": "Local-first second brain memory layer for AI agents and chat channels",
   "license": "MIT",
   "bin": {
     "ezra-second-brain-template": "scripts/install-node.js",
@@ -18,8 +18,9 @@
   "keywords": [
     "second-brain",
     "markdown",
-    "telegram",
     "agent",
+    "local-first",
+    "chat-channel",
     "personal-knowledge-management"
   ]
 }

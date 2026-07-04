@@ -1,33 +1,45 @@
 # ezra-second-brain-template
 
-> A filesystem-first second brain for Telegram / Hermes / any agent that can run a shell.
+> A local-first memory layer for AI agents — usable from Telegram, CLI, Hermes, Claude Code, Codex, Cursor Agent, or any tool that can run shell commands.
 
-`ezra-second-brain-template` turns chat-style notes into a local, inspectable Markdown knowledge base. It captures raw messages, structures them into notes, actions, expenses, articles, topics, and daily reports — while keeping your private data in ordinary files that you own.
+`ezra-second-brain-template` turns lightweight natural-language inputs into a local, inspectable Markdown/JSONL knowledge base. It preserves raw inputs, structures them into notes, actions, expenses, articles, topics, and daily reports, and keeps your private data in ordinary files that you own.
+
+**Important:** Telegram is only one possible communication channel. It is not the agent. The actual workflow is designed around an agent + local filesystem + deterministic scripts. Telegram, Feishu/Lark, a desktop chat, a terminal, or another app can all act as input/output surfaces.
 
 [中文说明](README.zh-CN.md) · [Command list / 命令清单](docs/commands.zh-CN.md)
 
-## The vibe
-
-Most note systems ask you to open an app, pick a database, choose tags, and maintain a workflow.
-
-This one starts with a sentence:
+## Mental model
 
 ```text
-外脑：今天开项目会，确认内容框架和下周安排
+Any input channel
+  Telegram / CLI / Hermes / Claude Code / Codex / Cursor / Feishu / your own app
+        ↓
+Agent or script router
+        ↓
+Raw input preserved
+        ↓
+Structured Markdown + JSONL
+        ↓
+Deterministic query / review / daily report / downstream sync
 ```
 
-Then it turns that sentence into a local trail:
+The project is **not** a Telegram bot template and not a heavy Notion/Jira replacement. It is a portable local memory substrate that agents can read, write, validate, and migrate.
 
-```text
-raw input -> inbox -> structured Markdown / JSONL -> query / review / daily report
-```
+## Why this exists
 
-The goal is not to replace Notion or a project-management system. The goal is to give your agent a durable local memory layer that is:
+Most personal knowledge systems fail in one of three ways:
 
-- boring enough to last;
-- transparent enough to debug;
-- private enough to trust;
-- flexible enough to remix.
+- capture is too heavy, so notes never get written;
+- data is trapped in a product database;
+- agents can chat, but they do not have a stable local memory layer they can inspect and maintain.
+
+This template takes the opposite path:
+
+- **light capture** — say one sentence from any channel;
+- **plain storage** — Markdown + JSONL instead of opaque app state;
+- **deterministic retrieval** — common queries use scripts/rules before fuzzy LLM search;
+- **agent-friendly maintenance** — tests, validation, schemas, and installer scripts are included;
+- **local ownership** — private records stay in your workspace, not in the public template.
 
 ## What it can do
 
@@ -40,14 +52,29 @@ The goal is not to replace Notion or a project-management system. The goal is to
 | Article ingestion | Save URLs, pasted articles, local docs | `外脑存文章：https://example.com/article` |
 | Topic sedimentation | Build durable topic pages over time | `外脑？人设IP 方法论` |
 | Expense capture | Lightweight bookkeeping in Markdown | `外脑：今天午饭花了28元` |
-| Agent install | Let any shell-capable agent bootstrap it | Python one-liner / `npx` |
+| Agent bootstrap | Let any shell-capable agent install and verify it | Python one-liner / `npx` |
+| Optional cloud sync | Push selected local data into Feishu/Lark dashboards | `lark-cli` integration |
+
+## Channels vs agents
+
+This distinction matters:
+
+| Layer | Examples | Role |
+|---|---|---|
+| **Agent** | Hermes, Claude Code, Codex, Cursor Agent, your custom agent | Understands intent, calls scripts, edits files, verifies results |
+| **Channel** | Telegram, Feishu/Lark, desktop chat, terminal, web app | Where the user sends commands and receives answers |
+| **Memory layer** | This repository's Markdown/JSONL files and scripts | Durable local storage + deterministic operations |
+
+So when you see `telegram_brain_router.py`, read it as a **chat-command router**. It exists because Telegram-style messages are a convenient mobile input format, but the same commands can be sent by any agent or CLI.
 
 ## Install it like an agent would
 
 Give this block to any coding agent — Hermes, Claude Code, Codex, Cursor Agent, etc.:
 
 ```text
-Install ezra-second-brain-template for me. Create a local second-brain workspace, do not overwrite existing private data, fetch the template from https://github.com/77Ezra1/ezra-second-brain-template, copy config/brain.example.yaml to config/brain.yaml, create local data directories, run tests/validation, and tell me the install path and commands. If you can run shell commands, prefer:
+Install ezra-second-brain-template for me. Create a local second-brain workspace, do not overwrite existing private data, fetch the template from https://github.com/77Ezra1/ezra-second-brain-template, copy config/brain.example.yaml to config/brain.yaml, create local data directories, run tests/validation, and tell me the install path and commands. Treat Telegram as an optional communication channel, not as the agent or the core product.
+
+If you can run shell commands, prefer:
 python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())"
 ```
 
@@ -68,17 +95,19 @@ npx github:77Ezra1/ezra-second-brain-template --target ~/second-brain
 
 ## 10-second demo
 
+The demo uses the router script because it understands chat-style commands. `--source cli` marks this demo input as coming from the command line; you can change the source to `telegram`, `hermes`, `cursor`, `feishu`, or another label for your own integration.
+
 ```bash
 cd ~/second-brain
 
 python scripts/telegram_brain_router.py \
   --text "外脑：今天开项目会，确认内容框架" \
-  --source telegram \
+  --source cli \
   --data-dir ./data
 
 python scripts/telegram_brain_router.py \
   --text "外脑？今天记录了什么" \
-  --source telegram \
+  --source cli \
   --data-dir ./data
 ```
 
@@ -119,7 +148,7 @@ See the full list: [`docs/commands.zh-CN.md`](docs/commands.zh-CN.md)
 
 The core template is local-first. If you also install `lark-cli`, agents can connect this workflow to Feishu/Lark Docs and Base tables:
 
-- sync expenses, reports, or project metrics into Base;
+- sync selected expenses, reports, or project metrics into Base;
 - build category dashboards and trend charts;
 - read or create cloud documents for collaboration.
 

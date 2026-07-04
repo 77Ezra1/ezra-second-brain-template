@@ -1,8 +1,10 @@
 # ezra-second-brain-template 中文说明
 
-> 把 Telegram / Agent 对话变成一个可追溯、可查询、可复盘的本地 Markdown 外脑。
+> 给 AI Agent 用的本地优先记忆层：可以从 Telegram、CLI、Hermes、Claude Code、Codex、Cursor Agent、飞书或任意能跑命令的工具写入。
 
 `ezra-second-brain-template` 是一套**文件系统优先**的个人外脑模板：你随口说一句“外脑，记一下……”，系统会把原始输入、结构化笔记、待办、日报、消费、文章和主题知识沉淀到本地文件里。
+
+**重要说明：Telegram 只是通讯通道，不是 Agent。** 真正的核心是：Agent 理解你的意图，调用本地脚本，把结果写入可检查、可迁移、可验证的 Markdown/JSONL 文件。Telegram、飞书、桌面聊天、命令行或你自己的 App 都可以只是入口。
 
 它不是一个笨重的 Notion/Jira 替代品，而是一套更适合 Agent 的本地知识底座：
 
@@ -21,14 +23,15 @@
 
 这套系统的目标是反过来：
 
-- **输入足够轻**：Telegram / CLI / 任意 Agent 都能写入；
+- **输入足够轻**：Telegram / CLI / 飞书 / 任意 Agent 都能写入；
+- **通道和 Agent 解耦**：通道只负责收发消息，Agent 才负责理解、调用脚本和验证结果；
 - **存储足够朴素**：Markdown + JSONL，没有数据库锁定；
 - **检索足够确定**：常见查询走规则路由，不全靠 LLM 猜；
 - **隐私足够清楚**：你的真实数据留在本地，不随模板开源。
 
 ## 适合谁
 
-- 想用 Telegram 当随身记录入口的人；
+- 想用 Telegram / 飞书 / 命令行 / 桌面 Agent 当随身记录入口的人；
 - 想给 Claude Code / Codex / Cursor / Hermes 配一个本地知识库的人；
 - 想自动生成工作日报、明日安排、待办的人；
 - 想把文章、文档、消费、想法沉淀成 Markdown 的人；
@@ -48,6 +51,16 @@
 | Agent 安装 | 一段命令让任意 Agent 安装 | Python one-liner / npx |
 
 完整命令清单见：[`docs/commands.zh-CN.md`](docs/commands.zh-CN.md)
+
+## 通道 vs Agent
+
+| 层级 | 例子 | 作用 |
+|---|---|---|
+| **Agent** | Hermes、Claude Code、Codex、Cursor Agent、自研 Agent | 理解意图、调用脚本、编辑文件、验证结果 |
+| **通道** | Telegram、飞书、桌面聊天、命令行、Web App | 负责收消息和回消息 |
+| **记忆层** | 本仓库里的 Markdown/JSONL 文件和脚本 | 负责长期保存、结构化、查询、复盘 |
+
+所以项目里的 `telegram_brain_router.py` 更准确地说是一个**聊天命令路由器**。它最早服务 Telegram 风格的移动端输入，但不代表项目只能用 Telegram，也不代表 Telegram 是 Agent。
 
 ## 可选增强：连接飞书云文档 / 多维表格
 
@@ -82,6 +95,7 @@ lark-cli --version
 5. 创建 data/raw、data/inbox、data/wiki、data/daily、data/reviews 等本地数据目录；
 6. 运行 python -m pytest tests -q 和 python scripts/brain_cli.py validate 验证；
 7. 最后告诉我安装路径和可用命令。
+注意：Telegram 只是可选通讯通道，不是 Agent，也不是核心产品。
 如果可以运行 shell，请优先使用项目提供的安装脚本：
 python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())"
 ```
@@ -108,17 +122,19 @@ npx github:77Ezra1/ezra-second-brain-template --target ~/second-brain
 
 ## 10 秒体验
 
+下面用 `telegram_brain_router.py` 演示，是因为它能处理聊天式命令；`--source cli` 表示这条输入来自命令行。你也可以换成 `telegram`、`hermes`、`feishu`、`cursor` 等来源标签。
+
 ```bash
 cd ~/second-brain
 
 python scripts/telegram_brain_router.py \
   --text "外脑：今天开项目会，确认内容框架" \
-  --source telegram \
+  --source cli \
   --data-dir ./data
 
 python scripts/telegram_brain_router.py \
   --text "外脑？今天记录了什么" \
-  --source telegram \
+  --source cli \
   --data-dir ./data
 ```
 
@@ -182,7 +198,7 @@ data/reviews/
 
 不要提交：
 
-- Telegram 原始消息；
+- Telegram / 飞书 / 其他通道的原始消息；
 - 消费记录；
 - 工作日报；
 - 私人文章归档；
