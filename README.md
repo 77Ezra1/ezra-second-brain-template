@@ -6,7 +6,7 @@
 
 **Important:** Telegram is only one possible communication channel. It is not the agent. The actual workflow is designed around an agent + local filesystem + deterministic scripts. Telegram, Feishu/Lark, a desktop chat, a terminal, or another app can all act as input/output surfaces.
 
-[中文说明](README.zh-CN.md) · [Command list / 命令清单](docs/commands.zh-CN.md)
+[中文说明](README.zh-CN.md) · [Command list / 命令清单](docs/commands.zh-CN.md) · [Contributing](CONTRIBUTING.md)
 
 ## Mental model
 
