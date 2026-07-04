@@ -6,7 +6,7 @@
 
 The simple idea: say something once, let your agent write it down properly, and keep the result searchable, reviewable, and portable.
 
-[中文说明](README.zh-CN.md) · [Command list / 命令清单](docs/commands.zh-CN.md) · [Contributing](CONTRIBUTING.md)
+[中文说明](README.zh-CN.md) · [Command list / 命令清单](docs/commands.zh-CN.md) · [Contributing](CONTRIBUTING.md) · [贡献指南](CONTRIBUTING.zh-CN.md)
 
 ## The idea
 

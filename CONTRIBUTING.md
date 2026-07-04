@@ -1,5 +1,7 @@
 # Contributing to ezra-second-brain-template
 
+[中文贡献指南](CONTRIBUTING.zh-CN.md)
+
 Thanks for helping improve `ezra-second-brain-template`.
 
 This project is a **local-first second brain for AI agents**. Users should be able to use it from any capable agent — Hermes, Claude Code, Codex, Cursor Agent, a local script, or their own agent workflow — and talk to that agent through whatever interface they prefer, such as Telegram, Feishu/Lark, CLI, or desktop chat.

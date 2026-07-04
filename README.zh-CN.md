@@ -50,7 +50,7 @@
 | 消费记录 | 轻量记账与本地查询 | `外脑：今天午饭花了28元` |
 | Agent 安装 | 一段命令让任意 Agent 安装 | Python one-liner / npx |
 
-完整命令清单见：[`docs/commands.zh-CN.md`](docs/commands.zh-CN.md)；提 PR 前请看：[`CONTRIBUTING.md`](CONTRIBUTING.md)
+完整命令清单见：[`docs/commands.zh-CN.md`](docs/commands.zh-CN.md)；提 PR 前请看：[`CONTRIBUTING.zh-CN.md`](CONTRIBUTING.zh-CN.md) / [`CONTRIBUTING.md`](CONTRIBUTING.md)
 
 ## 可选增强：连接飞书云文档 / 多维表格
 
