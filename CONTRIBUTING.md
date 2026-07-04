@@ -2,9 +2,9 @@
 
 Thanks for helping improve `ezra-second-brain-template`.
 
-This project is a **local-first memory layer for AI agents**. It is not a Telegram bot template, and it is not a hosted note-taking app. Telegram, Feishu/Lark, CLI, desktop chat, and web apps are communication channels; agents such as Hermes, Claude Code, Codex, Cursor Agent, or custom agents are the actors that understand intent, call scripts, edit files, and verify results.
+This project is a **local-first second brain for AI agents**. Users should be able to use it from any capable agent — Hermes, Claude Code, Codex, Cursor Agent, a local script, or their own agent workflow — and talk to that agent through whatever interface they prefer, such as Telegram, Feishu/Lark, CLI, or desktop chat.
 
-Please keep that positioning clear in every contribution.
+Keep the writing natural and user-facing: this is an agent-usable local memory system, not a Telegram-only bot and not a hosted note-taking app.
 
 ## What kinds of PRs are welcome?
 
@@ -33,17 +33,19 @@ Avoid introducing opaque databases, hosted dependencies, or external services as
 
 Optional integrations are welcome, but they must stay optional.
 
-### 2. Agent-friendly, channel-agnostic
+### 2. Works from many agents and interfaces
 
-Use this language consistently:
+A user should be able to install this into any capable agent workflow, then capture and query notes through the interface they already use.
 
-- **Agent**: Hermes, Claude Code, Codex, Cursor Agent, custom agents.
-- **Channel**: Telegram, Feishu/Lark, CLI, desktop chat, web app.
-- **Memory layer**: this repository's Markdown/JSONL files and scripts.
+Good wording:
 
-If you mention `telegram_brain_router.py`, describe it as a **chat-command router** or **mobile-input adapter**, not as the core product.
+```text
+Use it from Hermes, Claude Code, Codex, Cursor Agent, a local script, or your own agent. Talk to that agent from Telegram, Feishu/Lark, CLI, desktop chat, or any interface you connect.
+```
 
-Prefer examples with `--source cli` unless the example is specifically about Telegram. If using `--source telegram`, explain that it is only a channel/source label.
+If you mention `telegram_brain_router.py`, describe it simply as the current **chat-command router**. Do not over-explain the implementation unless the doc is specifically about integration internals.
+
+Prefer examples with `--source cli` unless the example is specifically about Telegram.
 
 ### 3. Privacy by default
 
@@ -125,9 +127,9 @@ Before opening a PR, make sure you can check these boxes:
 
 - [ ] The PR is focused and has a clear title.
 - [ ] The change keeps the project local-first and agent-friendly.
-- [ ] Telegram/Feishu/CLI are described as channels, not agents.
+- [ ] The writing makes it clear users can use this from many agent workflows and interfaces.
 - [ ] No real private data, credentials, tokens, cookies, or sync IDs are committed.
-- [ ] README/docs examples do not imply Telegram is the core product.
+- [ ] README/docs examples do not make the project sound Telegram-only.
 - [ ] New behavior has tests or a clear reason why tests are not applicable.
 - [ ] `npm run test` passes.
 - [ ] `npm run validate` passes.
@@ -139,7 +141,7 @@ Before opening a PR, make sure you can check these boxes:
 | Change type | Minimum verification |
 |---|---|
 | Docs only | `npm run validate` plus spell/positioning review |
-| README / positioning | Check agent-vs-channel wording and run `npm run validate` |
+| README / positioning | Check that the wording is natural, agent-usable, not Telegram-only; run `npm run validate` |
 | Python scripts | `python -m pytest tests -q` and `python scripts/brain_cli.py validate` |
 | Router / capture behavior | Add or update router/CLI tests; verify with `--source test` or `--source cli` |
 | Installer | Run both Python and Node installer smoke tests |
@@ -209,7 +211,7 @@ Use this structure:
 
 ## Positioning / privacy check
 - [ ] Keeps the project local-first
-- [ ] Treats Telegram/Feishu/CLI as channels, not agents
+- [ ] Describes the project as usable from many agents and interfaces
 - [ ] No private data or secrets included
 
 ## Verification
@@ -225,7 +227,7 @@ Anything reviewers should know.
 
 A PR may be asked to change if it:
 
-- makes Telegram sound like the product or the agent;
+- makes the project sound Telegram-only;
 - requires a cloud service for core local usage;
 - introduces private data or realistic personal examples;
 - lacks tests for behavior changes;

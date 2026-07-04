@@ -1,29 +1,27 @@
 # ezra-second-brain-template
 
-> A local-first memory layer for AI agents — usable from Telegram, CLI, Hermes, Claude Code, Codex, Cursor Agent, or any tool that can run shell commands.
+> A local-first second brain that any AI agent can use — from Hermes, Claude Code, Codex, Cursor Agent, a terminal, or your own agent workflow.
 
-`ezra-second-brain-template` turns lightweight natural-language inputs into a local, inspectable Markdown/JSONL knowledge base. It preserves raw inputs, structures them into notes, actions, expenses, articles, topics, and daily reports, and keeps your private data in ordinary files that you own.
+`ezra-second-brain-template` turns lightweight natural-language inputs into a local, inspectable Markdown/JSONL knowledge base. You can talk to your agent from Telegram, Feishu/Lark, a desktop chat, the CLI, or any other interface; the system keeps the underlying memory in ordinary files that you own.
 
-**Important:** Telegram is only one possible communication channel. It is not the agent. The actual workflow is designed around an agent + local filesystem + deterministic scripts. Telegram, Feishu/Lark, a desktop chat, a terminal, or another app can all act as input/output surfaces.
+The simple idea: say something once, let your agent write it down properly, and keep the result searchable, reviewable, and portable.
 
 [中文说明](README.zh-CN.md) · [Command list / 命令清单](docs/commands.zh-CN.md) · [Contributing](CONTRIBUTING.md)
 
-## Mental model
+## The idea
+
+Most agent workflows can chat, but they do not automatically leave behind a clean, local memory that you can inspect later.
+
+This template gives any shell-capable agent a simple second-brain workspace:
 
 ```text
-Any input channel
-  Telegram / CLI / Hermes / Claude Code / Codex / Cursor / Feishu / your own app
-        ↓
-Agent or script router
-        ↓
-Raw input preserved
-        ↓
-Structured Markdown + JSONL
-        ↓
-Deterministic query / review / daily report / downstream sync
+say something in your agent chat
+  -> preserve the raw input
+  -> structure it into Markdown / JSONL
+  -> query it later / review it / build daily reports
 ```
 
-The project is **not** a Telegram bot template and not a heavy Notion/Jira replacement. It is a portable local memory substrate that agents can read, write, validate, and migrate.
+You can use it from Hermes, Claude Code, Codex, Cursor Agent, a local script, or your own agent. You can talk to that agent through Telegram, Feishu/Lark, CLI, desktop chat, or any interface you connect.
 
 ## Why this exists
 
@@ -55,24 +53,12 @@ This template takes the opposite path:
 | Agent bootstrap | Let any shell-capable agent install and verify it | Python one-liner / `npx` |
 | Optional cloud sync | Push selected local data into Feishu/Lark dashboards | `lark-cli` integration |
 
-## Channels vs agents
-
-This distinction matters:
-
-| Layer | Examples | Role |
-|---|---|---|
-| **Agent** | Hermes, Claude Code, Codex, Cursor Agent, your custom agent | Understands intent, calls scripts, edits files, verifies results |
-| **Channel** | Telegram, Feishu/Lark, desktop chat, terminal, web app | Where the user sends commands and receives answers |
-| **Memory layer** | This repository's Markdown/JSONL files and scripts | Durable local storage + deterministic operations |
-
-So when you see `telegram_brain_router.py`, read it as a **chat-command router**. It exists because Telegram-style messages are a convenient mobile input format, but the same commands can be sent by any agent or CLI.
-
 ## Install it like an agent would
 
 Give this block to any coding agent — Hermes, Claude Code, Codex, Cursor Agent, etc.:
 
 ```text
-Install ezra-second-brain-template for me. Create a local second-brain workspace, do not overwrite existing private data, fetch the template from https://github.com/77Ezra1/ezra-second-brain-template, copy config/brain.example.yaml to config/brain.yaml, create local data directories, run tests/validation, and tell me the install path and commands. Treat Telegram as an optional communication channel, not as the agent or the core product.
+Install ezra-second-brain-template for me. Create a local second-brain workspace that I can use from this agent. Do not overwrite existing private data. Fetch the template from https://github.com/77Ezra1/ezra-second-brain-template, copy config/brain.example.yaml to config/brain.yaml, create local data directories, run tests/validation, and tell me the install path and commands.
 
 If you can run shell commands, prefer:
 python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())"
@@ -95,7 +81,7 @@ npx github:77Ezra1/ezra-second-brain-template --target ~/second-brain
 
 ## 10-second demo
 
-The demo uses the router script because it understands chat-style commands. `--source cli` marks this demo input as coming from the command line; you can change the source to `telegram`, `hermes`, `cursor`, `feishu`, or another label for your own integration.
+The demo uses `telegram_brain_router.py` because it is the current chat-command router. Here `--source cli` simply marks the example as coming from the command line; you can use another source label in your own integration.
 
 ```bash
 cd ~/second-brain
