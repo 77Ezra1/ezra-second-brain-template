@@ -50,7 +50,26 @@
 | 消费记录 | 轻量记账与本地查询 | `外脑：今天午饭花了28元` |
 | Agent 安装 | 一段命令让任意 Agent 安装 | Python one-liner / npx |
 
-完整命令清单见：[`docs/commands.zh-CN.md`](docs/commands.zh-CN.md)；提 PR 前请看：[`CONTRIBUTING.zh-CN.md`](CONTRIBUTING.zh-CN.md) / [`CONTRIBUTING.md`](CONTRIBUTING.md)
+完整命令清单见：[`docs/commands.zh-CN.md`](docs/commands.zh-CN.md)；快速安装见：[`INSTALL.md`](INSTALL.md)；提 PR 前请看：[`CONTRIBUTING.zh-CN.md`](CONTRIBUTING.zh-CN.md) / [`CONTRIBUTING.md`](CONTRIBUTING.md)
+
+## 最简单安装：把仓库链接发给你的 Agent
+
+复制下面这个链接，发给 Hermes、Claude Code、Codex、Cursor Agent 或任何能运行命令行的 Agent：
+
+```text
+https://github.com/77Ezra1/ezra-second-brain-template
+```
+
+推荐直接这样说：
+
+```text
+请帮我安装这个本地优先外脑：
+https://github.com/77Ezra1/ezra-second-brain-template
+
+请按我的操作系统选择安装方式，不要覆盖已有私人数据，安装后运行验证，并告诉我安装路径和第一条记录/查询命令。
+```
+
+仓库里已经包含 [`AGENTS.md`](AGENTS.md)，兼容的 Agent 可以直接读取仓库级安装说明。
 
 ## 可选增强：连接飞书云文档 / 多维表格
 

@@ -99,6 +99,17 @@ lark_expense_sync:
 
 ## 安装命令
 
+最省事的方式是把仓库链接直接发给你的 Agent：
+
+```text
+请帮我安装这个本地优先外脑：
+https://github.com/77Ezra1/ezra-second-brain-template
+
+请按我的操作系统选择安装方式，不要覆盖已有私人数据，安装后运行验证，并告诉我安装路径和第一条记录/查询命令。
+```
+
+仓库根目录的 `AGENTS.md` 提供了 Agent 可直接读取的安装说明。
+
 ### macOS
 
 ```bash

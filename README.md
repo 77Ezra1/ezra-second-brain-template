@@ -6,7 +6,26 @@
 
 The simple idea: say something once, let your agent write it down properly, and keep the result searchable, reviewable, and portable.
 
-[中文说明](README.zh-CN.md) · [Command list / 命令清单](docs/commands.zh-CN.md) · [Contributing](CONTRIBUTING.md) · [贡献指南](CONTRIBUTING.zh-CN.md)
+[中文说明](README.zh-CN.md) · [Install](INSTALL.md) · [Command list / 命令清单](docs/commands.zh-CN.md) · [Contributing](CONTRIBUTING.md) · [贡献指南](CONTRIBUTING.zh-CN.md)
+
+## Fastest install: send this link to your agent
+
+Copy this URL and send it to Hermes, Claude Code, Codex, Cursor Agent, or any shell-capable agent:
+
+```text
+https://github.com/77Ezra1/ezra-second-brain-template
+```
+
+Suggested message:
+
+```text
+Please install this local-first second brain for me:
+https://github.com/77Ezra1/ezra-second-brain-template
+
+Use the installer for my operating system, do not overwrite existing private data, run validation, and tell me the install path plus the first capture/query commands.
+```
+
+The repo includes [`AGENTS.md`](AGENTS.md), so compatible agents can read the repository-level install instructions directly.
 
 ## The idea
 
