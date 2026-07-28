@@ -70,44 +70,63 @@ lark-cli --version
 
 完整配置见：[`docs/feishu-lark-cli.zh-CN.md`](docs/feishu-lark-cli.zh-CN.md)
 
-## 一键安装
+## 一键安装：macOS / Windows 两个版本
 
 ### 方式 A：复制给任意 Agent
 
 把下面这段话发给你的 Agent 工具：
 
 ```text
-请帮我安装 ezra-second-brain-template：
+请帮我按当前操作系统安装 ezra-second-brain-template：
 1. 在我的用户目录下创建 second-brain 工作区；
 2. 从 https://github.com/77Ezra1/ezra-second-brain-template 获取模板；
-3. 不要覆盖已有私人数据；
-4. 复制 config/brain.example.yaml 为 config/brain.yaml；
-5. 创建 data/raw、data/inbox、data/wiki、data/daily、data/reviews 等本地数据目录；
-6. 运行 python -m pytest tests -q 和 python scripts/brain_cli.py validate 验证；
-7. 最后告诉我安装路径和可用命令。
-如果可以运行 shell，请优先使用项目提供的安装脚本：
-python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())"
+3. 按 macOS 或 Windows 选择对应安装脚本；
+4. 不要覆盖已有私人数据；
+5. 复制 config/brain.example.yaml 为 config/brain.yaml，并写入当前平台和本地 data 路径；
+6. 创建 data/raw、data/inbox、data/wiki、data/daily、data/reviews 等本地数据目录；
+7. 运行 python -m pytest tests -q 和 python scripts/brain_cli.py validate 验证；
+8. 最后告诉我安装路径和可用命令。
 ```
 
-### 方式 B：Python 一行安装
+### macOS 版
 
 ```bash
-python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())"
+# 推荐：macOS 一行安装
+curl -fsSL https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install-macos.sh | bash
+
+# 指定安装目录
+curl -fsSL https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install-macos.sh | bash -s -- --target ~/second-brain
+
+# Python fallback
+python3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())" -- --platform macos
 ```
 
-指定安装目录：
+### Windows 版
 
-```bash
-python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())" -- --target ~/second-brain
+在 PowerShell 里运行：
+
+```powershell
+# 推荐：Windows 一行安装
+irm https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install-windows.ps1 | iex
+
+# 指定安装目录
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install-windows.ps1))) -Target "$HOME\second-brain"
+
+# Python fallback
+py -3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())" -- --platform windows
 ```
 
-### 方式 C：npx / npm 风格
+### npx / npm 风格
 
 ```bash
+# macOS / Linux
 npx github:77Ezra1/ezra-second-brain-template --target ~/second-brain
+
+# Windows PowerShell
+npx github:77Ezra1/ezra-second-brain-template --platform windows --target "$HOME\second-brain"
 ```
 
-> npx 方式会调用 Python 安装脚本，因此目标环境仍需要 Python 3.11+。
+两个版本都建议使用 Python 3.11+。安装器会自动创建 `data/` 运行目录，并生成当前平台可用的 `config/brain.yaml`。详细说明见：[`docs/install-macos.md`](docs/install-macos.md) / [`docs/install-windows.md`](docs/install-windows.md)。
 
 ## 10 秒体验
 

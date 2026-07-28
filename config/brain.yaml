@@ -1,4 +1,5 @@
 root: ./data
+platform: auto
 timezone: Asia/Shanghai
 language: zh-CN
 telegram:

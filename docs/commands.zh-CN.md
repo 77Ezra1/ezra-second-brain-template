@@ -99,16 +99,39 @@ lark_expense_sync:
 
 ## 安装命令
 
+### macOS
+
 ```bash
-# Python 一行安装
-python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())"
+# macOS 推荐安装
+curl -fsSL https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install-macos.sh | bash
 
 # 指定安装目录
-python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())" -- --target ~/second-brain
+curl -fsSL https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install-macos.sh | bash -s -- --target ~/second-brain
 
-# npx / Node 风格
+# Python fallback
+python3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())" -- --platform macos
+```
+
+### Windows PowerShell
+
+```powershell
+# Windows 推荐安装
+irm https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install-windows.ps1 | iex
+
+# 指定安装目录
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install-windows.ps1))) -Target "$HOME\\second-brain"
+
+# Python fallback
+py -3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())" -- --platform windows
+```
+
+### npx / Node 风格
+
+```bash
 npx github:77Ezra1/ezra-second-brain-template --target ~/second-brain
 ```
+
+平台详细说明见：[`docs/install-macos.md`](install-macos.md) / [`docs/install-windows.md`](install-windows.md)。
 
 ## 给任意 Agent 的安装提示词
 
@@ -116,11 +139,10 @@ npx github:77Ezra1/ezra-second-brain-template --target ~/second-brain
 请帮我安装 ezra-second-brain-template：
 1. 在我的用户目录下创建 second-brain 工作区；
 2. 从 https://github.com/77Ezra1/ezra-second-brain-template 获取模板；
-3. 不要覆盖已有私人数据；
-4. 复制 config/brain.example.yaml 为 config/brain.yaml；
-5. 创建 data/raw、data/inbox、data/wiki、data/daily、data/reviews 等本地数据目录；
-6. 运行 python -m pytest tests -q 和 python scripts/brain_cli.py validate 验证；
-7. 最后告诉我安装路径和可用命令。
-如果可以运行 shell，请优先使用项目提供的安装脚本：
-python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())"
+3. 按我的系统选择 macOS 或 Windows 安装脚本；
+4. 不要覆盖已有私人数据；
+5. 复制 config/brain.example.yaml 为 config/brain.yaml，并写入当前平台和本地 data 路径；
+6. 创建 data/raw、data/inbox、data/wiki、data/daily、data/reviews 等本地数据目录；
+7. 运行 python -m pytest tests -q 和 python scripts/brain_cli.py validate 验证；
+8. 最后告诉我安装路径和可用命令。
 ```

@@ -58,26 +58,47 @@ This template takes the opposite path:
 Give this block to any coding agent — Hermes, Claude Code, Codex, Cursor Agent, etc.:
 
 ```text
-Install ezra-second-brain-template for me. Create a local second-brain workspace that I can use from this agent. Do not overwrite existing private data. Fetch the template from https://github.com/77Ezra1/ezra-second-brain-template, copy config/brain.example.yaml to config/brain.yaml, create local data directories, run tests/validation, and tell me the install path and commands.
-
-If you can run shell commands, prefer:
-python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())"
+Install ezra-second-brain-template for my operating system. Create a local second-brain workspace that I can use from this agent. Do not overwrite existing private data. Fetch the template from https://github.com/77Ezra1/ezra-second-brain-template, choose the macOS or Windows installer as appropriate, copy config/brain.example.yaml to config/brain.yaml, create local data directories, run tests/validation, and tell me the install path and commands.
 ```
 
-Or run it yourself:
+### macOS version
 
 ```bash
-# Universal Python one-liner
-python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())"
+# Recommended macOS one-liner
+curl -fsSL https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install-macos.sh | bash
 
 # Custom target
-python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())" -- --target ~/second-brain
+curl -fsSL https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install-macos.sh | bash -s -- --target ~/second-brain
 
-# Node/npm style
-npx github:77Ezra1/ezra-second-brain-template --target ~/second-brain
+# Universal Python fallback
+python3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())" -- --platform macos
 ```
 
-> The `npx` path calls the Python installer internally, so Python 3.11+ is still recommended.
+### Windows version
+
+Run in PowerShell:
+
+```powershell
+# Recommended Windows one-liner
+irm https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install-windows.ps1 | iex
+
+# Custom target
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install-windows.ps1))) -Target "$HOME\second-brain"
+
+# Universal Python fallback
+py -3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/77Ezra1/ezra-second-brain-template/master/scripts/install.py').read())" -- --platform windows
+```
+
+### Node/npm style
+
+```bash
+npx github:77Ezra1/ezra-second-brain-template --target ~/second-brain
+npx github:77Ezra1/ezra-second-brain-template --platform windows --target "%USERPROFILE%\second-brain"
+```
+
+Python 3.11+ is recommended on both platforms. The installer writes platform-aware `config/brain.yaml`, creates `data/` runtime directories, and leaves private records out of the public template.
+
+Detailed setup: [`docs/install-macos.md`](docs/install-macos.md) · [`docs/install-windows.md`](docs/install-windows.md)
 
 ## 10-second demo
 
