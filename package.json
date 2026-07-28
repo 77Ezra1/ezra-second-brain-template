@@ -22,5 +22,8 @@
     "local-first",
     "chat-channel",
     "personal-knowledge-management"
-  ]
+  ],
+  "dependencies": {
+    "playwright-chromium": "^1.61.1"
+  }
 }

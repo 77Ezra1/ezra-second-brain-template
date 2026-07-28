@@ -72,13 +72,17 @@ def test_enrich_article_updates_article_and_topic_pages(tmp_path: Path, monkeypa
     assert "[[抖音电商]]" in article_text
     assert "[[人设 IP]]" in article_text
     assert "related: [" in article_text
-    topic_file = tmp_path / "wiki" / "topics" / "persona-ip.md"
+    topic_file = tmp_path / "wiki" / "topics" / "content-brand-growth" / "persona-content" / "persona-ip.md"
     assert topic_file.exists()
     topic_text = topic_file.read_text(encoding="utf-8")
     assert "# 人设 IP" in topic_text
     assert "中小品牌做抖音" in topic_text
     assert "把创始人 IP 拆成直播间短视频素材测试清单" in topic_text
     assert (tmp_path / "wiki" / "topics" / "index.md").exists()
+    assert "content-brand-growth/persona-content/persona-ip.md" in (tmp_path / "wiki" / "topics" / "index.md").read_text(encoding="utf-8")
+    assert "domain: 内容与品牌增长" in topic_text
+    assert "parent: 人设内容" in topic_text
+    assert "topic_path: 内容与品牌增长/人设内容/人设 IP" in topic_text
 
 
 def test_topic_page_gets_method_scenarios_metrics_and_cases(tmp_path: Path, monkeypatch) -> None:
@@ -103,7 +107,7 @@ def test_topic_page_gets_method_scenarios_metrics_and_cases(tmp_path: Path, monk
 
     enricher.enrich_article(article)
 
-    topic_text = (tmp_path / "wiki" / "topics" / "persona-ip.md").read_text(encoding="utf-8")
+    topic_text = (tmp_path / "wiki" / "topics" / "content-brand-growth" / "persona-content" / "persona-ip.md").read_text(encoding="utf-8")
     assert "## Core Claims" in topic_text
     assert "解决信任缺失" in topic_text
     assert "## Methodology" in topic_text

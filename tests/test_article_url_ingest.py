@@ -106,7 +106,7 @@ def test_ingest_url_complete_runs_topic_enrichment(tmp_path: Path, monkeypatch) 
     assert result["topic_enrichment"]["ok"] is True
     topic_names = {t["name"] for t in result["topic_enrichment"]["topics"]}
     assert {"抖音电商", "人设 IP", "中小品牌起盘", "直播间投流复盘"}.issubset(topic_names)
-    assert (tmp_path / "wiki" / "topics" / "persona-ip.md").exists()
+    assert (tmp_path / "wiki" / "topics" / "content-brand-growth" / "persona-content" / "persona-ip.md").exists()
     assert "topic_enrichment" in result["reply_text"] or "主题" in result["reply_text"]
 
 

@@ -101,7 +101,7 @@ def test_document_article_ingest_writes_article_and_enriches_topics(tmp_path: Pa
     assert result["extraction_method"] == "markitdown"
     assert result["title"] == "中小品牌做抖音人设IP"
     assert "topic_enrichment" in result
-    assert (tmp_path / "wiki" / "topics" / "persona-ip.md").exists()
+    assert (tmp_path / "wiki" / "topics" / "content-brand-growth" / "persona-content" / "persona-ip.md").exists()
     assert "主题：" in result["reply_text"]
 
 

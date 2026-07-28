@@ -52,20 +52,30 @@ def test_work_report_persists_generated_report_inside_repo_root(tmp_path: Path) 
     assert "跟进拍摄工作" in content
 
 
-def test_work_report_historical_plan_items_surface_as_review_when_no_done_records(tmp_path: Path) -> None:
+def test_work_report_same_day_plan_items_are_included_with_done_records(tmp_path: Path) -> None:
     wr = load_work_report()
     wr.ROOT = tmp_path
     wr.REPORT_PATH = tmp_path / "daily" / "work_report.jsonl"
     wr.REPORT_PATH.parent.mkdir(parents=True)
     records = [
         {
+            "id": "r1",
+            "created_at": "2026-06-27T19:40:35+08:00",
+            "date": "2026-06-27",
+            "type": "review",
+            "title": "完成数据整理",
+            "summary": "完成数据整理",
+            "details": "完成数据整理。",
+            "status": "done",
+        },
+        {
             "id": "p1",
             "created_at": "2026-06-26T19:40:35+08:00",
             "date": "2026-06-27",
             "type": "plan",
             "title": "跟进拍摄工作",
-            "summary": "跟进27号拍摄工作",
-            "details": "明天跟进27号拍摄执行情况。",
+            "summary": "跟进拍摄工作",
+            "details": "明天跟进拍摄执行情况。",
             "status": "pending",
         },
         {
@@ -84,10 +94,44 @@ def test_work_report_historical_plan_items_surface_as_review_when_no_done_record
     content = wr.generate_report("2026-06-27", "2026-06-28", save=True)
 
     assert "6/27 今日复盘" in content
-    assert "1. 跟进27号拍摄工作" in content
-    assert "2. 跟进素材产出工作" in content
+    assert "1. 完成数据整理" in content
+    assert "2. 跟进拍摄工作" in content
+    assert "3. 跟进素材产出工作" in content
     assert "6/28 明日安排" in content
     assert (tmp_path / "daily" / "reports" / "2026-06-27.md").exists()
+
+
+def test_work_report_imports_previous_persisted_tomorrow_arrangements(tmp_path: Path) -> None:
+    wr = load_work_report()
+    wr.ROOT = tmp_path
+    wr.REPORT_PATH = tmp_path / "daily" / "work_report.jsonl"
+    wr.REPORT_PATH.parent.mkdir(parents=True)
+    wr.REPORT_PATH.write_text(
+        json.dumps(
+            {
+                "id": "r1",
+                "created_at": "2026-07-10T20:41:06+08:00",
+                "date": "2026-07-10",
+                "type": "review",
+                "summary": "完成数据整理",
+            },
+            ensure_ascii=False,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    reports = tmp_path / "daily" / "reports"
+    reports.mkdir(parents=True)
+    (reports / "2026-07-09.md").write_text(
+        "7/9 今日复盘\n1. 完成素材投放\n\n7/10 明日安排\n1. 跟进成片产出\n2. 跟进拍摄安排\n",
+        encoding="utf-8",
+    )
+
+    content = wr.generate_report("2026-07-10", "2026-07-11", save=True)
+
+    assert "1. 完成数据整理" in content
+    assert "2. 跟进成片产出" in content
+    assert "3. 跟进拍摄安排" in content
 
 
 def test_work_report_keeps_enough_context_for_distinct_work_situations(tmp_path: Path) -> None:

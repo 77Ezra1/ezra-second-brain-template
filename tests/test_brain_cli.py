@@ -122,6 +122,34 @@ def test_capture_syncs_real_expenses_to_lark_when_configured(tmp_path: Path, mon
     assert payload["rows"][1][1:8] == ["星巴克", f"{brain.today()} 00:00:00", 21.0, "外食餐饮", "咖啡饮品", "未知", "星巴克"]
 
 
+def test_capture_preserves_local_data_when_lark_sync_fails(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    brain = load_brain_cli()
+    monkeypatch.setattr(brain, "ROOT", tmp_path)
+    config = tmp_path / "config" / "brain.yaml"
+    config.parent.mkdir(parents=True)
+    config.write_text(
+        "lark_expense_sync:\n"
+        "  enabled: true\n"
+        "  base_token: base_test\n"
+        "  table_id: tbl_test\n"
+        "  identity: user\n",
+        encoding="utf-8",
+    )
+
+    def failing_sync(rows: list[dict]) -> dict:
+        raise RuntimeError("need_user_authorization")
+
+    monkeypatch.setattr(brain, "sync_expenses_to_lark", failing_sync)
+
+    result = brain.capture("今天午饭花了28元", "telegram")
+
+    assert result["ok"] is True
+    assert result["lark_expense_sync"][0]["synced"] == 0
+    assert "need_user_authorization" in result["lark_expense_sync"][0]["error"]
+    expense_file = tmp_path / "wiki" / "finance" / "expenses" / f"{brain.month()}.md"
+    assert "| 午饭 | 28 | dining |  | telegram |" in expense_file.read_text(encoding="utf-8")
+
+
 def test_capture_from_verify_source_preserves_raw_but_skips_structured_daily_stats(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     brain = load_brain_cli()
     monkeypatch.setattr(brain, "ROOT", tmp_path)
@@ -213,6 +241,78 @@ def test_query_today_excludes_verify_and_e2e_sections_by_default(tmp_path: Path,
     assert "端到端验证记录" not in result["answer"]
 
 
+def test_query_today_includes_yesterday_tomorrow_arrangements_from_work_report(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    brain = load_brain_cli()
+    monkeypatch.setattr(brain, "ROOT", tmp_path)
+    today = brain.today()
+    yesterday = (brain.now_dt().date() - timedelta(days=1)).isoformat()
+
+    today_inbox = tmp_path / "inbox" / f"{today}.md"
+    today_inbox.parent.mkdir(parents=True)
+    today_inbox.write_text(f"# Inbox {today}\n\n## 2026-07-09T09:00:00+08:00 — telegram\n\n今天安排：对接直客。\n", encoding="utf-8")
+
+    report = tmp_path / "daily" / "reports" / f"{yesterday}.md"
+    report.parent.mkdir(parents=True)
+    report.write_text(
+        "7/8 今日复盘\n"
+        "1. 完成昨日事项\n\n"
+        "7/9 明日安排\n"
+        "1. 跟进采买工作以及外部拍摄工作\n"
+        "2. 跟进成片产出工作\n"
+        "3. 完成素材投放\n",
+        encoding="utf-8",
+    )
+
+    result = brain.query_notes("我今天一共有哪些安排")
+
+    assert result["ok"] is True
+    assert result["type"] == "today"
+    assert "对接直客" in result["answer"]
+    assert "跟进采买工作以及外部拍摄工作" in result["answer"]
+    assert "跟进成片产出工作" in result["answer"]
+    assert "完成素材投放" in result["answer"]
+    assert f"daily/reports/{yesterday}.md" in result["files"]
+
+
+
+def test_capture_today_arrangement_addition_feeds_work_daily_report(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    brain = load_brain_cli()
+    monkeypatch.setattr(brain, "ROOT", tmp_path)
+
+    result = brain.capture("今天安排新增：规划Q3销售计划", "telegram")
+
+    assert result["ok"] is True
+    assert "daily/work_report.jsonl" in result["files"]
+    records = [json.loads(line) for line in (tmp_path / "daily" / "work_report.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert len(records) == 1
+    assert records[0]["date"] == brain.today()
+    assert records[0]["type"] == "plan"
+    assert records[0]["summary"] == "规划Q3销售计划"
+    assert records[0]["status"] == "pending"
+
+    script_src = Path(__file__).resolve().parents[1] / "scripts" / "work_report.py"
+    script_dst = tmp_path / "scripts" / "work_report.py"
+    script_dst.parent.mkdir(parents=True)
+    script_dst.write_text(script_src.read_text(encoding="utf-8"), encoding="utf-8")
+    report = brain.query_notes("今天的日报")
+
+    assert report["ok"] is True
+    assert "规划Q3销售计划" in report["answer"]
+
+
+def test_capture_tomorrow_arrangement_writes_next_day_plan(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    brain = load_brain_cli()
+    monkeypatch.setattr(brain, "ROOT", tmp_path)
+
+    result = brain.capture("明天安排：规划Q3销售计划", "telegram")
+
+    assert result["ok"] is True
+    records = [json.loads(line) for line in (tmp_path / "daily" / "work_report.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert len(records) == 1
+    assert records[0]["date"] == (brain.now_dt().date() + timedelta(days=1)).isoformat()
+    assert records[0]["type"] == "plan"
+    assert records[0]["summary"] == "规划Q3销售计划"
+
 def test_query_notes_reads_persisted_work_daily_report_before_daily_notes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     brain = load_brain_cli()
     monkeypatch.setattr(brain, "ROOT", tmp_path)
@@ -231,6 +331,30 @@ def test_query_notes_reads_persisted_work_daily_report_before_daily_notes(tmp_pa
     assert "跟进27号拍摄工作" in result["answer"]
     assert "普通日记" not in result["answer"]
 
+
+
+def test_query_notes_regenerates_stale_work_daily_report_when_work_report_data_is_newer(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    brain = load_brain_cli()
+    monkeypatch.setattr(brain, "ROOT", tmp_path)
+    script_src = Path(__file__).resolve().parents[1] / "scripts" / "work_report.py"
+    script_dst = tmp_path / "scripts" / "work_report.py"
+    script_dst.parent.mkdir(parents=True)
+    script_dst.write_text(script_src.read_text(encoding="utf-8"), encoding="utf-8")
+
+    report = tmp_path / "daily" / "reports" / f"{brain.today()}.md"
+    report.parent.mkdir(parents=True)
+    report.write_text("7/11 今日复盘\n1. 旧事项\n\n7/12 明日安排\n1. 暂无记录\n", encoding="utf-8")
+    data = tmp_path / "daily" / "work_report.jsonl"
+    data.parent.mkdir(parents=True, exist_ok=True)
+    data.write_text(json.dumps({"date": brain.today(), "type": "plan", "summary": "规划Q3销售计划"}, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    result = brain.query_notes("今天的日报")
+
+    assert result["ok"] is True
+    assert result["type"] == "work_daily_report"
+    assert result.get("generated") is True
+    assert "规划Q3销售计划" in result["answer"]
+    assert report.read_text(encoding="utf-8") == result["answer"].rstrip() + "\n"
 
 def test_query_notes_generates_missing_work_daily_report_inside_repo_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     brain = load_brain_cli()
@@ -357,6 +481,72 @@ def test_query_notes_topic_section_filter_returns_only_requested_section(tmp_pat
     assert "自然流占比" in result["answer"]
     assert "选人 → 测试 → 放大" not in result["answer"]
 
+
+def test_query_notes_matches_hierarchical_topic_metadata(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    brain = load_brain_cli()
+    monkeypatch.setattr(brain, "ROOT", tmp_path)
+    topic = tmp_path / "wiki" / "topics" / "career-growth" / "business-thinking" / "business-accounting-profit-thinking.md"
+    topic.parent.mkdir(parents=True)
+    topic.write_text(
+        "---\n"
+        "id: topic-career-growth-business-thinking-business-accounting-profit-thinking\n"
+        "type: topic\n"
+        "domain: 职业成长\n"
+        "parent: 经营能力\n"
+        "topic_path: 职业成长/经营能力/经营核算与利润意识\n"
+        "facets: [经营, 利润, 单品损益, ROI]\n"
+        "aliases: [经营核算, 利润意识, 单品损益表]\n"
+        "---\n\n"
+        "# 经营核算与利润意识\n\n"
+        "## Core Claims\n\n- ROI 不是完整经营指标。\n\n"
+        "## Metrics\n\n- 保本 ROI\n- 贡献利润\n",
+        encoding="utf-8",
+    )
+
+    result = brain.query_notes("职业成长 经营能力 指标")
+
+    assert result["type"] == "topic"
+    assert result["topic"]["title"] == "经营核算与利润意识"
+    assert result["files"] == ["wiki/topics/career-growth/business-thinking/business-accounting-profit-thinking.md"]
+    assert "保本 ROI" in result["answer"]
+
+
+def test_query_notes_ignores_topic_index_pages_for_precise_topic_match(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    brain = load_brain_cli()
+    monkeypatch.setattr(brain, "ROOT", tmp_path)
+    index = tmp_path / "wiki" / "topics" / "content-brand-growth" / "index.md"
+    index.parent.mkdir(parents=True)
+    index.write_text(
+        "# 内容与品牌增长\n\n"
+        "- [人设 IP](persona-content/persona-ip.md)\n"
+        "- [中小品牌起盘](brand-launch/small-brand-launch.md)\n"
+        "方法、指标、案例、品牌增长。\n",
+        encoding="utf-8",
+    )
+    topic = tmp_path / "wiki" / "topics" / "content-brand-growth" / "persona-content" / "persona-ip.md"
+    topic.parent.mkdir(parents=True)
+    topic.write_text(
+        "---\n"
+        "type: topic\n"
+        "domain: 内容与品牌增长\n"
+        "parent: 人设内容\n"
+        "topic_path: 内容与品牌增长/人设内容/人设 IP\n"
+        "facets: [人设IP, 创始人IP, 信任]\n"
+        "aliases: [人设IP, 人设 IP, 创始人IP]\n"
+        "---\n\n"
+        "# 人设 IP\n\n"
+        "## Methodology\n\n- 选人 → 测试 → 放大。\n",
+        encoding="utf-8",
+    )
+
+    result = brain.query_notes("内容与品牌增长 人设 方法")
+
+    assert result["type"] == "topic"
+    assert result["topic"]["title"] == "人设 IP"
+    assert result["topic"]["section_filter"] == "Methodology"
+    assert result["files"] == ["wiki/topics/content-brand-growth/persona-content/persona-ip.md"]
+    assert "选人 → 测试 → 放大" in result["answer"]
+    assert "content-brand-growth/index.md" not in result["files"]
 
 
 def test_query_notes_time_filtered_articles_returns_recent_matching_sources(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

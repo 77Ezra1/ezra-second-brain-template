@@ -404,7 +404,16 @@ def append_expenses(text: str, source: str) -> tuple[Path | None, dict | None]:
         notes = ""
         append(path, f"| {date_value} | {item} | {amount} | {category} | {notes} | {source} |\n")
         lark_rows.append(expense_lark_row(date_value, item, amount, category, notes, source))
-    sync_result = sync_expenses_to_lark(lark_rows) if not is_test_source(source) else {"enabled": False, "synced": 0, "skipped": "test_source"}
+    if is_test_source(source):
+        sync_result = {"enabled": False, "synced": 0, "skipped": "test_source"}
+    else:
+        try:
+            sync_result = sync_expenses_to_lark(lark_rows)
+        except Exception as exc:
+            # The local Markdown record is the source of truth. Optional Lark
+            # synchronization must never turn a successful local capture into
+            # a failed capture (for example after a cross-machine auth move).
+            sync_result = {"enabled": True, "synced": 0, "error": str(exc)[:1000]}
     return path, sync_result
 
 
@@ -434,9 +443,9 @@ def append_idea(text: str, source: str) -> Path:
 
 
 def is_work_report_capture(text: str) -> bool:
-    if re.search(r"日报|今日复盘|明日安排|工作安排", text):
+    if re.search(r"日报|今日复盘|明日安排|明天安排|今日安排|今天安排|安排新增|工作安排", text):
         return True
-    work_terms = ["早会", "例会", "复盘", "安排", "跟进", "沟通", "对接", "整理", "审核", "投放", "成片", "拍摄", "素材", "KOC", "BD", "直客", "卡审"]
+    work_terms = ["早会", "例会", "复盘", "安排", "跟进", "沟通", "对接", "整理", "审核", "投放", "成片", "拍摄", "素材", "KOC", "BD", "直客", "卡审", "计划", "规划"]
     return "工作" in text and any(term in text for term in work_terms)
 
 
@@ -444,6 +453,8 @@ def normalize_work_summary(segment: str) -> str:
     text = segment.strip(" ，。；;、：:")
     text = re.sub(r"^(外脑[，,:：]?\s*)?(记一下|记录一下|帮我记一下)?", "", text).strip(" ，。；;、：:")
     text = re.sub(r"^(我)?(今天|今日|早上|上午|下午|晚上)?(的)?工作安排", "", text).strip(" ，。；;、：:")
+    text = re.sub(r"^(我)?(今天|今日|明天|明日)(的)?安排(新增|补充)?(是)?", "", text).strip(" ，。；;、：:")
+    text = re.sub(r"^安排(新增|补充|是)", "", text).strip(" ，。；;、：:")
     text = re.sub(r"^(我)?(今天|今日|早上|上午|下午|晚上)", "", text).strip(" ，。；;、：:")
     text = text.replace("koc", "KOC").replace("bd", "BD").replace("live", "LIVE")
     text = text.replace("沟通了", "沟通").replace("复盘了", "复盘").replace("安排了", "安排").replace("跟进了", "跟进").replace("整理了", "整理").replace("审核了", "审核").replace("投放了", "投放")
@@ -456,8 +467,12 @@ def normalize_work_summary(segment: str) -> str:
     return text
 
 
-def work_report_record_id(record_date: str, summary: str) -> str:
-    return f"{record_date}-{now_dt().strftime('%H%M%S')}-review-{slugify(summary, 32)}"
+def work_report_record_id(record_date: str, summary: str, record_type: str = "review") -> str:
+    return f"{record_date}-{now_dt().strftime('%H%M%S')}-{record_type}-{slugify(summary, 32)}"
+
+
+def split_work_segments(text: str) -> list[str]:
+    return [seg for seg in re.split(r"[，,。；;\n]+", text) if seg.strip()]
 
 
 def append_work_report_from_capture(text: str, source: str) -> Path | None:
@@ -465,32 +480,49 @@ def append_work_report_from_capture(text: str, source: str) -> Path | None:
         return None
     path = ROOT / "daily" / "work_report.jsonl"
     path.parent.mkdir(parents=True, exist_ok=True)
-    record_date = today()
     source_text = text
-    summaries: list[str] = []
+    base_date = now_dt().date()
+    entries: list[tuple[str, str, str]] = []
 
+    def add_segments(record_date: str, record_type: str, body: str, explicit: bool = False) -> None:
+        for segment in split_work_segments(body):
+            summary = normalize_work_summary(segment)
+            if not summary or summary in {"我", "今天", "今日", "明天", "明日", "工作", "安排", "新增"}:
+                continue
+            if len(summary) < 4:
+                continue
+            # Free-form review extraction is intentionally conservative to avoid
+            # turning ordinary notes into reports. Explicit 今日/明日安排 captures
+            # are user-declared plan items, so keep items such as “规划Q3销售计划”.
+            if not explicit and not any(term in summary for term in ["早会", "例会", "复盘", "安排", "跟进", "沟通", "对接", "整理", "审核", "投放", "成片", "拍摄", "素材", "KOC", "BD", "直客", "卡审", "采买", "计划", "规划"]):
+                continue
+            if "工作安排" == summary:
+                continue
+            entries.append((record_date, record_type, summary))
+
+    tomorrow_match = re.search(r"(?:明天|明日)(?:的)?安排(?:是|新增|补充)?[：:]?(.+)", text, flags=re.S)
+    today_match = re.search(r"(?:今天|今日)(?:的)?安排(?:是|新增|补充)?[：:]?(.+)", text, flags=re.S)
+
+    if tomorrow_match:
+        tomorrow = (base_date + timedelta(days=1)).isoformat()
+        add_segments(tomorrow, "plan", tomorrow_match.group(1), explicit=True)
+    if today_match:
+        add_segments(base_date.isoformat(), "plan", today_match.group(1), explicit=True)
+
+    current_text = re.split(r"明天安排是|明日安排|明天的安排是|明天要|明天安排|明日安排", text, maxsplit=1)[0]
     if "早会" in text and "复盘" in text and "安排" in text:
-        summaries.append("早会复盘团队进度并安排今日工作")
+        entries.append((base_date.isoformat(), "review", "早会复盘团队进度并安排今日工作"))
+    # If the whole capture is an explicit 今日安排, it has already been recorded
+    # as a same-day plan above; do not also classify it as a completed review.
+    if not today_match:
+        add_segments(base_date.isoformat(), "review", current_text, explicit=False)
 
-    current_text = re.split(r"明天安排是|明日安排|明天的安排是|明天要", text, maxsplit=1)[0]
-    for segment in re.split(r"[，,。；;\n]+", current_text):
-        summary = normalize_work_summary(segment)
-        if not summary or summary in {"我", "今天", "今日", "工作", "安排"}:
-            continue
-        if len(summary) < 4:
-            continue
-        if not any(term in summary for term in ["早会", "例会", "复盘", "安排", "跟进", "沟通", "对接", "整理", "审核", "投放", "成片", "拍摄", "素材", "KOC", "BD", "直客", "卡审", "采买"]):
-            continue
-        if "工作安排" == summary:
-            continue
-        summaries.append(summary)
-
-    deduped: list[str] = []
-    seen: set[str] = set()
-    for summary in summaries:
-        if summary not in seen:
-            seen.add(summary)
-            deduped.append(summary)
+    deduped: list[tuple[str, str, str]] = []
+    seen: set[tuple[str, str, str]] = set()
+    for entry in entries:
+        if entry not in seen:
+            seen.add(entry)
+            deduped.append(entry)
     if not deduped:
         return None
 
@@ -504,22 +536,22 @@ def append_work_report_from_capture(text: str, source: str) -> Path | None:
             existing_keys.add((item.get("date", ""), item.get("type", ""), item.get("summary", "")))
 
     with path.open("a", encoding="utf-8") as f:
-        for summary in deduped:
-            key = (record_date, "review", summary)
+        for record_date, record_type, summary in deduped:
+            key = (record_date, record_type, summary)
             if key in existing_keys:
                 continue
             record = {
-                "id": work_report_record_id(record_date, summary),
+                "id": work_report_record_id(record_date, summary, record_type),
                 "created_at": iso_now(),
                 "date": record_date,
-                "type": "review",
+                "type": record_type,
                 "title": summary,
                 "summary": summary,
                 "details": summary,
                 "source_text": source_text,
                 "project": "",
-                "status": "done",
-                "tags": ["日报"],
+                "status": "pending" if record_type == "plan" else "done",
+                "tags": ["日报", "明日安排"] if record_type == "plan" else ["日报"],
             }
             f.write(json.dumps(record, ensure_ascii=False, separators=(",", ":")) + "\n")
     return path
@@ -816,8 +848,30 @@ def filter_daily_test_lines(body: str) -> tuple[str, int]:
     return "\n".join(kept).strip() + "\n", skipped
 
 
+def extract_tomorrow_arrangements_from_report(body: str) -> str:
+    """Return the 明日安排 block from a persisted work report, if present."""
+    lines = body.splitlines()
+    start: int | None = None
+    for idx, line in enumerate(lines):
+        if re.search(r"明日安排|明天安排", line):
+            start = idx
+            break
+    if start is None:
+        return ""
+
+    block: list[str] = []
+    for line in lines[start:]:
+        if block and re.search(r"今日复盘|昨日复盘|^\s*#+\s+", line):
+            break
+        if block and re.match(r"^\s*\d{1,2}[/-]\d{1,2}\s+", line) and not re.search(r"明日安排|明天安排", line):
+            break
+        block.append(line)
+    return "\n".join(block).strip()
+
+
 def query_today() -> dict:
     date = today()
+    yesterday = (now_dt().date() - timedelta(days=1)).isoformat()
     files = [ROOT / "inbox" / f"{date}.md", ROOT / "wiki" / "life" / "daily" / f"{date}.md"]
     parts = []
     used = []
@@ -832,6 +886,14 @@ def query_today() -> dict:
                 body, count = filter_daily_test_lines(body)
             excluded += count
             parts.append(f"## {rel(p)}\n" + body[-3000:])
+
+    yesterday_report = ROOT / "daily" / "reports" / f"{yesterday}.md"
+    if yesterday_report.exists():
+        tomorrow_arrangements = extract_tomorrow_arrangements_from_report(yesterday_report.read_text(encoding="utf-8", errors="replace"))
+        if tomorrow_arrangements:
+            used.append(rel(yesterday_report))
+            parts.append(f"## {rel(yesterday_report)} — 昨日记录的今日安排\n" + tomorrow_arrangements[-3000:])
+
     if not parts:
         answer = f"今天（{date}）还没有记录。"
     else:
@@ -860,15 +922,14 @@ def resolve_report_date(text: str) -> str | None:
     return None
 
 
-def query_work_daily_report(text: str) -> dict | None:
-    if not re.search(r"日报|工作日报|今日复盘|明日安排", text):
-        return None
-    report_date = resolve_report_date(text) or today()
-    path = ROOT / "daily" / "reports" / f"{report_date}.md"
-    if path.exists():
-        body = path.read_text(encoding="utf-8", errors="replace").strip()
-        return {"ok": True, "type": "work_daily_report", "date": report_date, "answer": body, "files": [rel(path)], "persisted": True}
+def work_report_data_newer_than(report_path: Path) -> bool:
+    data_path = ROOT / "daily" / "work_report.jsonl"
+    if not data_path.exists() or not report_path.exists():
+        return False
+    return data_path.stat().st_mtime >= report_path.stat().st_mtime
 
+
+def generate_work_daily_report(report_date: str, path: Path) -> dict:
     script = ROOT / "scripts" / "work_report.py"
     if script.exists():
         plan_day = (date.fromisoformat(report_date) + timedelta(days=1)).isoformat()
@@ -886,6 +947,18 @@ def query_work_daily_report(text: str) -> dict | None:
         return {"ok": False, "type": "work_daily_report", "date": report_date, "answer": f"没有找到 {report_date} 的日报，且自动生成失败：{message}", "files": []}
 
     return {"ok": True, "type": "work_daily_report", "date": report_date, "answer": f"没有找到 {report_date} 的成品日报。", "files": []}
+
+
+def query_work_daily_report(text: str) -> dict | None:
+    if not re.search(r"日报|工作日报|今日复盘|明日安排", text):
+        return None
+    report_date = resolve_report_date(text) or today()
+    path = ROOT / "daily" / "reports" / f"{report_date}.md"
+    if path.exists() and not work_report_data_newer_than(path):
+        body = path.read_text(encoding="utf-8", errors="replace").strip()
+        return {"ok": True, "type": "work_daily_report", "date": report_date, "answer": body, "files": [rel(path)], "persisted": True}
+
+    return generate_work_daily_report(report_date, path)
 
 
 def strip_frontmatter(text: str) -> str:
@@ -927,6 +1000,20 @@ def frontmatter_aliases(text: str) -> list[str]:
     return [a for a in aliases if a]
 
 
+def frontmatter_field_values(text: str, keys: list[str]) -> list[str]:
+    values: list[str] = []
+    for key in keys:
+        m = re.search(rf"^{re.escape(key)}:\s*(.+)$", text, re.M)
+        if not m:
+            continue
+        raw = m.group(1).strip()
+        if raw.startswith("[") and raw.endswith("]"):
+            values.extend(part.strip().strip('"\'') for part in raw[1:-1].split(","))
+        elif raw:
+            values.append(raw)
+    return [v for v in values if v]
+
+
 def topic_query_terms(text: str) -> list[str]:
     cleaned = re.sub(r"[？?，。,.;；：:]", " ", text)
     stop = {"最近", "关于", "一下", "看看", "查询", "精确", "主题", "资料", "记录", "什么", "有哪些", "总结", "给我"}
@@ -962,9 +1049,15 @@ def topic_file_candidates(query: str) -> list[tuple[int, Path, str]]:
     normalized_terms = [normalize_query_token(term) for term in terms]
     candidates: list[tuple[int, Path, str]] = []
     for path in topic_dir.rglob("*.md"):
+        if path.name == "index.md":
+            # Index pages are navigation aids. They can contain many unrelated terms
+            # and should not beat a real leaf topic during precise topic lookup.
+            continue
         body = path.read_text(encoding="utf-8", errors="replace")
         title = md_title(body, path.stem)
-        aliases = [title, path.stem, *frontmatter_aliases(body)]
+        rel_parts = list(path.relative_to(topic_dir).with_suffix("").parts)
+        hierarchy_values = frontmatter_field_values(body, ["domain", "parent", "topic_path", "facets"])
+        aliases = [title, path.stem, *rel_parts, *frontmatter_aliases(body), *hierarchy_values]
         alias_norms = [normalize_query_token(a) for a in aliases]
         score = 0
         for term, norm in zip(terms, normalized_terms):
@@ -974,6 +1067,16 @@ def topic_file_candidates(query: str) -> list[tuple[int, Path, str]]:
                 score += 2
         if score:
             candidates.append((score, path, title))
+    section = topic_section_filter(query)
+    if section:
+        section_candidates = []
+        for score, path, title in candidates:
+            body = path.read_text(encoding="utf-8", errors="replace")
+            has_section = bool(md_section(body, section) or (section == "Metrics" and md_section(body, "Key Metrics / Signals")))
+            if has_section:
+                section_candidates.append((score + 5, path, title))
+        if section_candidates:
+            candidates = section_candidates
     return sorted(candidates, key=lambda item: (-item[0], item[1].name))
 
 
@@ -1036,9 +1139,13 @@ def candidate_score(query: str, text: str) -> int:
 def collect_query_candidates(text: str, limit: int = 6) -> list[dict]:
     candidates: list[dict] = []
     for path in (ROOT / "wiki" / "topics").rglob("*.md"):
+        if path.name == "index.md":
+            continue
         body = path.read_text(encoding="utf-8", errors="replace")
         title = md_title(body, path.stem)
-        aliases = " ".join([title, path.stem, *frontmatter_aliases(body)])
+        rel_parts = list(path.relative_to(ROOT / "wiki" / "topics").with_suffix("").parts)
+        hierarchy_values = frontmatter_field_values(body, ["domain", "parent", "topic_path", "facets"])
+        aliases = " ".join([title, path.stem, *rel_parts, *frontmatter_aliases(body), *hierarchy_values])
         score = candidate_score(text, aliases + "\n" + body[:1000])
         if score:
             candidates.append({"file": rel(path), "title": title, "kind": "topic", "score": score})
